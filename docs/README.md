@@ -1,200 +1,225 @@
-# PPTX批量转PDF使用指南
+# Detailed guide
 
-这里提供了多种将PPTX文件批量转换为PDF的解决方案。
+This document expands on the repository root README and focuses on practical usage, local installation, and troubleshooting.
 
-## 🚀 快速开始
+## What is in this repository?
 
-### 方法1：使用bash脚本（推荐）
+This mini project provides three related tools:
 
-```bash
-# 给脚本执行权限
-chmod +x convert_pptx_to_pdf.sh
+1. `bin/pptx2pdf` — the main Bash CLI for local batch conversion
+2. `src/batch_pptx_to_pdf.py` — a Python helper that explores multiple backends
+3. `src/conversiontools_demo.py` — a demo for a ConversionTools-based workflow
 
-# 交互式使用
-./convert_pptx_to_pdf.sh
+For most users, `bin/pptx2pdf` is the only command you need.
 
-# 指定目录使用
-./convert_pptx_to_pdf.sh /path/to/pptx/files
+## Recommended workflow
 
-# 指定输入和输出目录
-./convert_pptx_to_pdf.sh /path/to/pptx/files /path/to/pdf/output
-```
+### 1. Install LibreOffice
 
-### 方法2：使用Python脚本
+On macOS:
 
 ```bash
-# 交互式使用
-python3 batch_pptx_to_pdf.py
-
-# 命令行使用
-python3 batch_pptx_to_pdf.py /path/to/pptx/files /path/to/pdf/output
-```
-
-## 📋 支持的转换方式
-
-### 1. LibreOffice命令行（推荐）✅
-
-**优点**：
-- 免费开源
-- 转换质量高
-- 支持批量处理
-- 跨平台支持
-
-**安装方法**：
-```bash
-# macOS
 brew install libreoffice
+```
 
-# Ubuntu/Debian
+On Ubuntu or Debian:
+
+```bash
 sudo apt-get install libreoffice
+```
 
-# CentOS/RHEL
+On CentOS or RHEL:
+
+```bash
 sudo yum install libreoffice
 ```
 
-**使用示例**：
+### 2. Run the CLI directly
+
 ```bash
-# 转换单个文件
-soffice --headless --convert-to pdf presentation.pptx
-
-# 批量转换到指定目录
-soffice --headless --convert-to pdf --outdir ./output *.pptx
+./bin/pptx2pdf /path/to/pptx/files
+./bin/pptx2pdf /path/to/pptx/files /path/to/pdf/output
 ```
 
-### 2. macOS Keynote导出
+### 3. Optionally install it into your `$PATH`
 
-**优点**：
-- Mac系统原生支持
-- 转换质量极高
-- 保持格式完整性
+#### Installer-based setup
 
-**缺点**：
-- 仅限macOS系统
-- 需要Keynote应用
-
-**AppleScript示例**：
-```applescript
-tell application "Keynote"
-    set theDoc to open POSIX file "/path/to/presentation.pptx"
-    export theDoc as PDF to POSIX file "/path/to/output.pdf"
-    close theDoc
-end tell
-```
-
-### 3. ConversionTools在线服务
-
-**优点**：
-- 无需安装软件
-- 支持多种格式
-- 转换质量好
-
-**缺点**：
-- 需要网络连接
-- 可能有使用限制
-- 大文件需要上传
-
-## 🛠 脚本功能特色
-
-### Bash脚本特色
-- ✅ 自动检测LibreOffice安装状态
-- ✅ 支持递归查找子目录中的PPTX文件
-- ✅ 彩色输出，清晰显示转换状态
-- ✅ 超时控制，避免卡死
-- ✅ 详细的成功/失败统计
-- ✅ 文件大小显示
-
-### Python脚本特色
-- ✅ 自动检测最佳转换方法
-- ✅ 支持多种转换后端
-- ✅ 详细的错误处理
-- ✅ 进度显示和统计
-- ✅ 交互式和命令行两种模式
-
-## 📁 输出目录结构
-
-```
-输入目录/
-├── presentation1.pptx
-├── presentation2.pptx
-└── subfolder/
-    └── presentation3.pptx
-
-输出目录/
-├── presentation1.pdf
-├── presentation2.pdf
-└── presentation3.pdf
-```
-
-## ⚠ 注意事项
-
-1. **文件权限**：确保脚本有读取PPTX文件和写入输出目录的权限
-2. **文件路径**：避免文件名包含特殊字符或空格
-3. **转换时间**：大文件或复杂演示可能需要更长时间
-4. **内存使用**：同时转换多个大文件可能占用大量内存
-5. **格式兼容性**：某些复杂动画或特效可能无法完美保留
-
-## 🔧 故障排除
-
-### LibreOffice相关问题
-
-**问题**：`soffice: command not found`
 ```bash
-# macOS
-brew install libreoffice
+make install
+```
 
-# 或者检查路径
+or:
+
+```bash
+./scripts/install.sh
+```
+
+#### Manual setup
+
+```bash
+mkdir -p "$HOME/.local/bin"
+ln -sf "$PWD/bin/pptx2pdf" "$HOME/.local/bin/pptx2pdf"
+```
+
+For `zsh`:
+
+```bash
+echo 'export PATH="$HOME/.local/bin:$PATH"' >> ~/.zshrc
+source ~/.zshrc
+```
+
+For `bash`:
+
+```bash
+echo 'export PATH="$HOME/.local/bin:$PATH"' >> ~/.bashrc
+source ~/.bashrc
+```
+
+Then verify:
+
+```bash
+pptx2pdf --version
+```
+
+## Command usage
+
+### Show help
+
+```bash
+pptx2pdf --help
+```
+
+### Convert one directory recursively
+
+```bash
+pptx2pdf ~/Documents/presentations
+```
+
+### Convert with a custom output directory
+
+```bash
+pptx2pdf ~/Documents/presentations ~/Documents/pdfs
+```
+
+### Convert the current directory
+
+```bash
+pptx2pdf .
+```
+
+## Output behavior
+
+If you do not pass an output directory, the tool writes converted files into a `converted_pdfs` folder inside the input directory.
+
+Example:
+
+```text
+input/
+├── talk.pptx
+├── deck.ppt
+└── converted_pdfs/
+    ├── talk.pdf
+    └── deck.pdf
+```
+
+## Backend notes
+
+### LibreOffice
+
+This is the primary and recommended backend.
+
+Pros:
+
+- free and local
+- works well for batch jobs
+- suitable for automation
+
+### Keynote
+
+The Python helper can attempt a Keynote-based route on macOS.
+
+Pros:
+
+- native to macOS
+- can preserve presentation layout well
+
+Limits:
+
+- macOS only
+- requires Keynote
+
+### ConversionTools
+
+The demo script helps prepare parameters for an online conversion workflow.
+
+Pros:
+
+- useful when a remote conversion flow is acceptable
+
+Limits:
+
+- network required
+- large files may need an upload flow
+- review privacy implications before using cloud services
+
+## Development notes
+
+Useful commands:
+
+```bash
+make help
+make test
+make lint
+make clean
+make package
+```
+
+Generate sample PPTX files:
+
+```bash
+cd examples
+node create_samples.js
+```
+
+## Troubleshooting
+
+### `soffice` is not available
+
+Install LibreOffice first. If it is already installed on macOS but not exposed in your shell, add:
+
+```bash
 export PATH="/Applications/LibreOffice.app/Contents/MacOS:$PATH"
 ```
 
-**问题**：转换卡死或超时
-```bash
-# 增加超时时间或手动终止进程
-pkill soffice
-```
+### The `pptx2pdf` command is not found
 
-**问题**：某些文件转换失败
-- 检查文件是否损坏
-- 尝试先在LibreOffice中手动打开
-- 确认文件格式是否正确
-
-### 权限问题
+Either run the CLI directly from the repository root:
 
 ```bash
-# 确保脚本可执行
-chmod +x convert_pptx_to_pdf.sh
-
-# 确保目录权限
-chmod 755 /path/to/directories
+./bin/pptx2pdf --help
 ```
 
-## 💡 使用技巧
+or complete the `$PATH` setup steps above.
 
-1. **批量处理大文件**：建议分批处理，避免系统负载过高
-2. **预览检查**：转换后检查几个PDF文件，确认质量满足要求
-3. **备份原文件**：重要文件建议先备份再转换
-4. **自动化**：可以将脚本加入cron job实现定时转换
-5. **网络转换**：对于在线服务，注意文件隐私和网络稳定性
+### Permission denied
 
-## 📊 性能参考
+```bash
+chmod +x ./bin/pptx2pdf
+```
 
-基于MacBook Air M1的测试结果：
+### A file fails to convert
 
-| 文件大小 | 页数 | 转换时间 | 方法 |
-|---------|------|----------|------|
-| 5MB | 20页 | 3秒 | LibreOffice |
-| 15MB | 50页 | 8秒 | LibreOffice |
-| 30MB | 100页 | 15秒 | LibreOffice |
-| 5MB | 20页 | 5秒 | Keynote |
+- check whether the file opens in LibreOffice
+- confirm the file is not locked by another application
+- test a smaller sample file first
+- inspect the CLI error message for the failed filename
 
-## 🆘 获取帮助
+## AI authorship disclosure
 
-如果遇到问题：
-1. 检查错误信息和日志输出
-2. 确认依赖软件已正确安装
-3. 验证文件格式和路径
-4. 查看脚本注释中的详细说明
+This project is AI-generated and intentionally states that clearly.
 
----
+- The whole codebase was written by the Claude Sonnet 4.6 LLM model.
+- Part of the documentation was written or polished by GPT-5.4.
 
-**最后更新**: 2026-03-07  
-**版本**: 1.0
+Human review is recommended before using the repository for production or business-critical document conversion.

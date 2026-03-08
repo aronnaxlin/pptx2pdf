@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # pptx2pdf 项目安装脚本
-# 从 ~/dev/pptx2pdf 安装到全局
+# 从当前仓库安装到全局
 
 set -e
 
@@ -19,10 +19,11 @@ echo "🚀 pptx2pdf 项目安装脚本"
 echo "========================="
 
 # 检查项目目录
-PROJECT_DIR="$HOME/dev/pptx2pdf"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PROJECT_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
 if [[ ! -d "$PROJECT_DIR" ]]; then
     log_error "项目目录不存在: $PROJECT_DIR"
-    echo "请确保项目已正确放置在 ~/dev/pptx2pdf/"
+    echo "请确保脚本位于仓库的 scripts/ 目录中"
     exit 1
 fi
 
@@ -76,6 +77,9 @@ if [[ -n "$SHELL_CONFIG" ]]; then
     fi
 fi
 
+# 在当前安装会话中临时生效，方便立即验证
+export PATH="$HOME/.local/bin:$PATH"
+
 # 检查LibreOffice
 log_info "检查依赖..."
 if ! command -v soffice &> /dev/null; then
@@ -116,4 +120,4 @@ echo "示例:"
 echo "  pptx2pdf ~/Documents/presentations"
 echo "  pptx2pdf ~/slides ~/pdfs"
 echo ""
-echo "项目文档: ~/dev/pptx2pdf/docs/"
+echo "项目文档: $PROJECT_DIR/docs/"

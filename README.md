@@ -1,185 +1,231 @@
-# 🎯 pptx2pdf - PowerPoint to PDF Conversion Tool
+# pptx2pdf
 
-A professional command-line tool for batch converting PPTX/PPT files to PDF format.
+A small open-source-style command-line project for batch converting PowerPoint files (`.pptx` and `.ppt`) to PDF.
 
-## 📁 Project Structure
+The main CLI uses LibreOffice locally, so it is a good fit for quick personal workflows, local automation, and lightweight document conversion pipelines.
 
-```
-~/dev/pptx2pdf/
-├── bin/                    # Executable binaries
-│   └── pptx2pdf           # Main command-line tool
-├── src/                   # Source code
-│   ├── batch_pptx_to_pdf.py      # Python implementation
-│   └── conversiontools_demo.py   # ConversionTools API demo
-├── scripts/               # Installation and utility scripts
-│   └── install_pptx2pdf.sh      # Global installation script
-├── docs/                  # Documentation
-│   ├── README.md                 # Detailed usage guide
-│   ├── GLOBAL_USAGE_GUIDE.md     # Global tool usage
-│   └── SOLUTION_SUMMARY.md       # Complete solution summary
-├── examples/              # Example files and demos
-│   ├── test_files/               # Sample PPTX files for testing
-│   └── create_samples.js         # Script to generate sample files
-└── README.md             # This file
-```
+> Status: experimental mini project. Review the output before using it in production workflows.
 
-## 🚀 Quick Start
+## Features
 
-### Installation
+- Batch conversion for `.pptx` and `.ppt`
+- Recursive file discovery inside subdirectories
+- Automatic output directory creation
+- Colored terminal output with progress and summary stats
+- Optional Python helpers for alternative conversion backends
+- Example slide generator for local testing
+
+## Requirements
+
+### Required
+
+- macOS or Linux
+- LibreOffice available from `soffice`
+
+### Optional
+
+- Python 3 for the helper scripts in `src/`
+- Node.js for generating sample presentations in `examples/`
+
+On macOS, install LibreOffice with:
+
 ```bash
-# Clone or navigate to the project
-cd ~/dev/pptx2pdf
+brew install libreoffice
+```
 
-# Install globally (recommended)
-./scripts/install_pptx2pdf.sh
+## Quick start
 
-# Or use directly
+Run the tool directly from the repository:
+
+```bash
+./bin/pptx2pdf /path/to/presentations
+./bin/pptx2pdf /path/to/presentations /path/to/output
 ./bin/pptx2pdf --help
 ```
 
-### Basic Usage
+If you want the `pptx2pdf` command available everywhere, follow the `$PATH` tutorial below.
+
+## Add `pptx2pdf` to your `$PATH`
+
+There are two practical ways to make the command globally available.
+
+### Option A: use the installer
+
 ```bash
-# Convert all PPTX files in a directory
+make install
+```
+
+Or run the installer directly:
+
+```bash
+./scripts/install.sh
+```
+
+This creates a symlink at `~/.local/bin/pptx2pdf` and updates your shell config if needed.
+
+### Option B: add it manually
+
+1. Create a personal bin directory:
+
+	```bash
+	mkdir -p "$HOME/.local/bin"
+	```
+
+2. Create a symlink to the project command:
+
+	```bash
+	ln -sf "$PWD/bin/pptx2pdf" "$HOME/.local/bin/pptx2pdf"
+	```
+
+3. Add `~/.local/bin` to your shell config.
+
+	For `zsh`:
+
+	```bash
+	echo 'export PATH="$HOME/.local/bin:$PATH"' >> ~/.zshrc
+	source ~/.zshrc
+	```
+
+	For `bash`:
+
+	```bash
+	echo 'export PATH="$HOME/.local/bin:$PATH"' >> ~/.bashrc
+	source ~/.bashrc
+	```
+
+4. Verify the command:
+
+	```bash
+	pptx2pdf --version
+	pptx2pdf --help
+	```
+
+If your shell uses `~/.bash_profile` instead of `~/.bashrc`, add the export there instead.
+
+## Usage
+
+### Basic examples
+
+```bash
+# Convert every presentation under a directory
 pptx2pdf ~/Documents/presentations
 
-# Specify input and output directories
-pptx2pdf ~/slides ~/pdfs
+# Write PDFs to a custom output directory
+pptx2pdf ~/Documents/presentations ~/Documents/pdfs
 
-# Show help
-pptx2pdf --help
+# Convert from the current directory
+pptx2pdf .
 ```
 
-## 📋 Features
+### Default output location
 
-- ✅ **Batch Conversion** - Convert multiple files at once
-- ✅ **Recursive Search** - Find files in subdirectories
-- ✅ **Multiple Backends** - LibreOffice, Keynote, online services
-- ✅ **Error Handling** - Detailed error reports and troubleshooting
-- ✅ **Cross-platform** - macOS, Linux support
-- ✅ **Professional UI** - Colored output and progress indicators
+If you do not pass an output directory, the CLI writes PDFs to:
 
-## 🛠 Available Tools
+```text
+<input-directory>/converted_pdfs
+```
 
-### 1. Main CLI Tool (`bin/pptx2pdf`)
-- **Primary tool** for daily use
-- Global installation support
-- Comprehensive help system
-- Version management
+## Project layout
 
-### 2. Python Implementation (`src/batch_pptx_to_pdf.py`)
-- Multi-backend support (LibreOffice, Keynote, ConversionTools)
-- Automatic method detection
-- Interactive and command-line modes
+```text
+.
+├── bin/
+│   └── pptx2pdf                # main CLI
+├── docs/
+│   └── README.md               # detailed guide
+├── examples/
+│   ├── create_samples.js       # generates sample PPTX files
+│   └── test_files/             # local sample assets
+├── scripts/
+│   ├── dev.sh                  # development helper
+│   ├── install.sh              # install into ~/.local/bin
+│   └── install_pptx2pdf.sh     # legacy installer script
+├── src/
+│   ├── batch_pptx_to_pdf.py    # Python helper implementation
+│   └── conversiontools_demo.py # ConversionTools demo
+├── Makefile
+└── README.md
+```
 
-### 3. ConversionTools Demo (`src/conversiontools_demo.py`)
-- Online conversion service integration
-- File size analysis
-- API parameter generation
+## Available tools
 
-## 🔧 Requirements
+### `bin/pptx2pdf`
 
-- **macOS** (tested) or **Linux**
-- **LibreOffice** (install with `brew install libreoffice`)
-- **Python 3.x** (for Python scripts)
-- **Node.js** (for example generation)
+The main Bash CLI for day-to-day usage.
 
-## 📖 Documentation
+### `src/batch_pptx_to_pdf.py`
 
-- [`docs/GLOBAL_USAGE_GUIDE.md`](docs/GLOBAL_USAGE_GUIDE.md) - Complete usage guide
-- [`docs/README.md`](docs/README.md) - Detailed implementation guide
-- [`docs/SOLUTION_SUMMARY.md`](docs/SOLUTION_SUMMARY.md) - Solution overview
+A Python helper that can try multiple backends such as LibreOffice, Keynote, or an online-service workflow.
 
-## 🧪 Testing
+### `src/conversiontools_demo.py`
+
+A demo script for preparing ConversionTools conversion parameters and checking file-size-related workflow choices.
+
+## Development
+
+Useful targets:
 
 ```bash
-# Generate sample PPTX files
-cd examples/
+make help
+make install
+make test
+make lint
+make clean
+make package
+```
+
+Generate sample files with:
+
+```bash
+cd examples
 node create_samples.js
-
-# Test conversion
-pptx2pdf examples/test_files
 ```
 
-## 🔄 Development
+## Troubleshooting
 
-### Project Organization
-- `bin/` - Production-ready executables
-- `src/` - Source implementations
-- `scripts/` - Installation and maintenance scripts
-- `docs/` - Documentation and guides
-- `examples/` - Test files and demonstrations
+### `soffice: command not found`
 
-### Version Management
-Current version: **1.0.0**
+Install LibreOffice first:
 
-Update version in:
-- `bin/pptx2pdf` (VERSION variable)
-- This README
-- Documentation files
-
-## 🚀 Installation Options
-
-### Option 1: Global Installation (Recommended)
 ```bash
-cd ~/dev/pptx2pdf
-./scripts/install_pptx2pdf.sh
+brew install libreoffice
 ```
 
-### Option 2: Direct Usage
+If LibreOffice is installed but `soffice` is still missing from your shell, try:
+
 ```bash
-cd ~/dev/pptx2pdf
-./bin/pptx2pdf [arguments]
+export PATH="/Applications/LibreOffice.app/Contents/MacOS:$PATH"
 ```
 
-### Option 3: Add to PATH Manually
+### `pptx2pdf: command not found`
+
+Either run the tool with `./bin/pptx2pdf` from the repository root, or follow the `$PATH` tutorial above.
+
+### Permission issues
+
 ```bash
-# Add to ~/.zshrc or ~/.bashrc
-export PATH="$HOME/dev/pptx2pdf/bin:$PATH"
+chmod +x ./bin/pptx2pdf
 ```
 
-## 🎯 Use Cases
+## AI authorship disclosure
 
-- **Academic** - Convert lecture slides to PDF
-- **Business** - Prepare presentation handouts
-- **Archival** - Convert old PowerPoint files for storage
-- **Automation** - Integrate into batch processing workflows
-- **Publishing** - Prepare slides for web distribution
+This repository is intentionally transparent about how it was produced.
 
-## 📊 Performance
+- The whole codebase was written by the Claude Sonnet 4.6 LLM model.
+- Part of the documentation was written or polished by GPT-5.4.
 
-- **Small files** (~1MB): ~2-3 seconds per file
-- **Large files** (~10MB): ~5-10 seconds per file
-- **Batch processing**: Handles multiple files efficiently
-- **Memory usage**: Low memory footprint
+Human review is still recommended before shipping changes or relying on the output for important documents.
 
-## 🆘 Support & Troubleshooting
+## Contributing
 
-### Common Issues
-1. **LibreOffice not found** - Install with `brew install libreoffice`
-2. **Permission denied** - Run `chmod +x ~/dev/pptx2pdf/bin/pptx2pdf`
-3. **Command not found** - Run installation script or add to PATH
+Small fixes, cleanup, and documentation improvements are welcome.
 
-### Getting Help
-- Check `docs/` for detailed guides
-- Run `pptx2pdf --help` for usage information
-- Review error messages for specific issues
+If you contribute:
 
-## 📝 License
+1. Keep changes focused.
+2. Test with local sample files when possible.
+3. Update documentation when behavior changes.
 
-This project is open source. See individual files for specific licensing terms.
+## License status
 
-## 🤝 Contributing
-
-1. Fork the project
-2. Create feature branch
-3. Make changes in appropriate directories
-4. Test with example files
-5. Submit pull request
-
-## 📅 Version History
-
-- **v1.0.0** (2026-03-07) - Initial release with complete toolset
-
----
-
-**Happy Converting!** 🎉
+No license file is included yet. Add your preferred license before publishing this as a public open-source repository.

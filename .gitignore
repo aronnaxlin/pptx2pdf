@@ -1,0 +1,31 @@
+.DS_Store
+.idea/
+.vscode/
+.config/
+
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.venv/
+venv/
+env/
+
+# Node / example generation
+examples/node_modules/
+examples/package-lock.json
+
+# Generated outputs
+examples/test_output/
+examples/test_files/converted_pdfs/
+examples/test_files/converted_pdfs_python/
+examples/test_files/converted_pdfs_v2/
+examples/test_files/*.pdf
+
+# Release artifacts
+*.tar.gz
+
+# Logs
+*.log
