@@ -228,4 +228,4 @@ If you contribute:
 
 ## License status
 
-No license file is included yet. Add your preferred license before publishing this as a public open-source repository.
+MIT LICENSE
