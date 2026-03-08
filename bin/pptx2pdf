@@ -1,0 +1,240 @@
+#!/bin/bash
+
+# PPTX批量转PDF工具 - LibreOffice版本 (全局版本)
+# 使用方法: pptx2pdf [输入目录] [输出目录]
+
+set -e
+
+# 颜色输出
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+BLUE='\033[0;34m'
+NC='\033[0m'
+
+# 版本信息
+VERSION="1.0.0"
+
+# 输出带颜色的消息
+log_info() { echo -e "${BLUE}ℹ $1${NC}"; }
+log_success() { echo -e "${GREEN}✓ $1${NC}"; }
+log_warning() { echo -e "${YELLOW}⚠ $1${NC}"; }
+log_error() { echo -e "${RED}✗ $1${NC}"; }
+
+# 显示帮助信息
+show_help() {
+    cat << EOF
+🎯 PPTX批量转PDF工具 v${VERSION}
+============================================
+
+PPTX/PPT文件批量转换为PDF的命令行工具
+
+使用方法:
+  pptx2pdf [输入目录] [输出目录]
+  pptx2pdf --help | -h     显示此帮助信息
+  pptx2pdf --version | -v  显示版本信息
+
+参数说明:
+  输入目录    包含PPTX/PPT文件的目录路径 (必需)
+  输出目录    PDF文件的保存路径 (可选，默认为输入目录/converted_pdfs)
+
+功能特点:
+  • 支持PPTX和PPT格式
+  • 递归搜索子目录中的文件
+  • 彩色输出显示转换进度
+  • 详细的错误报告和统计
+  • 自动创建输出目录
+
+示例:
+  pptx2pdf ~/Documents/presentations
+  pptx2pdf ~/Documents/pptx ~/Documents/pdf
+  pptx2pdf /path/to/slides /path/to/output
+
+要求:
+  • LibreOffice (可通过 'brew install libreoffice' 安装)
+
+EOF
+}
+
+# 显示版本信息
+show_version() {
+    echo "pptx2pdf version ${VERSION}"
+}
+
+# 检查LibreOffice是否安装
+check_libreoffice() {
+    if ! command -v soffice &> /dev/null; then
+        log_error "LibreOffice未安装"
+        log_info "请运行以下命令安装："
+        echo "  macOS: brew install libreoffice"
+        echo "  Ubuntu: sudo apt-get install libreoffice"
+        echo "  CentOS: sudo yum install libreoffice"
+        exit 1
+    fi
+    log_success "检测到LibreOffice"
+}
+
+# 转换单个文件
+convert_file() {
+    local input_file="$1"
+    local output_dir="$2"
+    local filename=$(basename "$input_file")
+    local base_name="${filename%.*}"
+    
+    echo -n "🔄 正在转换: $filename ... "
+    
+    # 创建临时错误文件
+    local error_file=$(mktemp)
+    
+    # 执行转换
+    if soffice --headless --convert-to pdf --outdir "$output_dir" "$input_file" 2>"$error_file" >/dev/null; then
+        # 检查PDF是否生成
+        if [[ -f "$output_dir/$base_name.pdf" ]]; then
+            log_success "成功"
+            rm -f "$error_file"
+            return 0
+        else
+            log_error "PDF文件未生成"
+            if [[ -s "$error_file" ]]; then
+                echo "    错误详情: $(cat "$error_file")"
+            fi
+            rm -f "$error_file"
+            return 1
+        fi
+    else
+        log_error "转换失败"
+        if [[ -s "$error_file" ]]; then
+            echo "    错误详情: $(cat "$error_file")"
+        fi
+        rm -f "$error_file"
+        return 1
+    fi
+}
+
+# 获取文件大小(MB)
+get_file_size_mb() {
+    local file="$1"
+    if [[ "$OSTYPE" == "darwin"* ]]; then
+        stat -f%z "$file" 2>/dev/null | awk '{print int($1/1024/1024)}'
+    else
+        stat -c%s "$file" 2>/dev/null | awk '{print int($1/1024/1024)}'
+    fi
+}
+
+# 主函数
+main() {
+    # 处理特殊参数
+    case "${1:-}" in
+        --help|-h)
+            show_help
+            exit 0
+            ;;
+        --version|-v)
+            show_version
+            exit 0
+            ;;
+        "")
+            echo "❌ 错误: 缺少输入目录参数"
+            echo ""
+            echo "使用方法: pptx2pdf [输入目录] [输出目录]"
+            echo "获取帮助: pptx2pdf --help"
+            exit 1
+            ;;
+    esac
+    
+    echo "🎯 PPTX批量转PDF工具 v${VERSION}"
+    echo "============================================"
+    
+    # 检查LibreOffice
+    check_libreoffice
+    
+    # 处理参数
+    local input_dir="$1"
+    local output_dir="${2:-$input_dir/converted_pdfs}"
+    
+    # 检查输入目录
+    if [[ ! -d "$input_dir" ]]; then
+        log_error "输入目录不存在: $input_dir"
+        exit 1
+    fi
+    
+    # 创建输出目录
+    mkdir -p "$output_dir"
+    
+    log_info "输入目录: $(realpath "$input_dir")"
+    log_info "输出目录: $(realpath "$output_dir")"
+    echo "--------------------------------------------"
+    
+    # 查找PPTX和PPT文件
+    files_found=()
+    while IFS= read -r -d '' file; do
+        files_found+=("$file")
+    done < <(find "$input_dir" -type f \( -iname "*.pptx" -o -iname "*.ppt" \) -print0 2>/dev/null)
+    
+    if [[ ${#files_found[@]} -eq 0 ]]; then
+        log_error "未找到PPTX或PPT文件"
+        exit 1
+    fi
+    
+    log_info "找到 ${#files_found[@]} 个演示文件:"
+    for i in "${!files_found[@]}"; do
+        file="${files_found[$i]}"
+        size_mb=$(get_file_size_mb "$file")
+        echo "  $((i+1)). $(basename "$file") (${size_mb}MB)"
+    done
+    echo "--------------------------------------------"
+    
+    # 开始转换
+    start_time=$(date +%s)
+    successful=0
+    failed=0
+    failed_files=()
+    
+    for file in "${files_found[@]}"; do
+        if convert_file "$file" "$output_dir"; then
+            ((successful++))
+        else
+            ((failed++))
+            failed_files+=("$(basename "$file")")
+        fi
+        
+        # 短暂延迟，避免LibreOffice冲突
+        sleep 0.5
+    done
+    
+    # 统计结果
+    end_time=$(date +%s)
+    duration=$((end_time - start_time))
+    
+    echo "--------------------------------------------"
+    log_info "转换完成! 用时: ${duration}秒"
+    log_success "成功: $successful 个文件"
+    [[ $failed -gt 0 ]] && log_error "失败: $failed 个文件"
+    
+    # 显示失败文件列表
+    if [[ $failed -gt 0 ]]; then
+        echo ""
+        log_error "失败的文件:"
+        for failed_file in "${failed_files[@]}"; do
+            echo "  • $failed_file"
+        done
+        echo ""
+        echo "💡 提示: 检查文件是否损坏或被其他程序占用"
+    fi
+    
+    if [[ $successful -gt 0 ]]; then
+        echo ""
+        log_success "PDF文件已保存到: $(realpath "$output_dir")"
+        
+        # 列出生成的PDF文件
+        echo ""
+        log_info "生成的PDF文件:"
+        find "$output_dir" -name "*.pdf" -exec basename {} \; 2>/dev/null | sort | sed 's/^/  • /' || echo "  (无PDF文件)"
+        
+        echo ""
+        echo "🎉 转换完成! 可以在输出目录中查看PDF文件。"
+    fi
+}
+
+# 运行主函数
+main "$@"
